@@ -8,7 +8,9 @@ const App = () => {
   const [preview, setPreview] = useState(
     "https://4.img-dpreview.com/files/p/E~TS590x0~articles/3925134721/0266554465.jpeg"
   );
-
+  const [progress, setProgress] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const progresspc = progress + '%';
   const handleChange = e => {
     const reader = new FileReader();
     const file = e.target.files[0];
@@ -20,11 +22,21 @@ const App = () => {
   };
 
   const handleUpload = async () => {
+    setLoading(true);
     try {
-      const data = new FormData() 
-      data.append('file', image);
-      const res = await axios.post("http://localhost:5000/upload", data);
-      console.log(res);
+      var config = {
+        onUploadProgress: progressEvent => {
+          const uploadStatus = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+            );
+            console.log(uploadStatus);
+            setProgress(uploadStatus);
+        }
+      };
+      const data = new FormData();
+      data.append("file", image);
+      const res = await axios.post("/upload", data,config);
+      // setLoading(false);
     } catch (err) {
       console.error(err);
     }
@@ -55,6 +67,20 @@ const App = () => {
             >
               upload image
             </button>
+            <br />
+            {loading ? (
+              <div className="progress">
+                <div
+                  className="progress-bar"
+                  role="progressbar"
+                  style={{ width: progresspc }}
+                >
+                  {progresspc}
+                </div>
+              </div>
+            ) : (
+              ""
+            )}
           </div>
           <div className="col-sm-6">
             <div className="card" style={{ width: "18rem" }}>
